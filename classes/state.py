@@ -74,7 +74,6 @@ class State:
         elif snake1.health < snake2.health:
             self.snakes.remove(snake1)
             self.board.update_dead_snake(snake1)
-            self.did_user_die = True
             self.death_count += 1
             if (snake1.id == 0):
                 self.did_user_die = True
@@ -94,9 +93,9 @@ class State:
             s_y -= 1
         my_cells = generate_neighbouring_cells({"x": s_x, "y": s_y}, self.board.width, self.board.height)
         opp_snakes = []
-        for opp_snake in self.snakes:
+        for opp_snake in list(self.snakes):
             if opp_snake.my_head in my_cells and opp_snake.id < snake.id:
-                did_we_survive = self.handle_collision(snake, opp_snakes[0])
+                did_we_survive = self.handle_collision(snake, opp_snake)
                 if did_we_survive == False:
                     return False
 
@@ -140,11 +139,14 @@ class State:
             return False
 
     def perform_move(self, snake_id, move):
-        if not self.check_out_of_bounds(self.snakes[snake_id], move):
-            if self.check_body_collision(self.snakes[snake_id], move):
-                did_we_survive = self.move_then_check_for_head(self.snakes[snake_id], move)
+        # Look the snake up by id; it may have already died this turn
+        snake = next((s for s in self.snakes if s.id == snake_id), None)
+        if snake is None:
+            return
+        if not self.check_out_of_bounds(snake, move):
+            if self.check_body_collision(snake, move):
+                did_we_survive = self.move_then_check_for_head(snake, move)
                 if did_we_survive:
-                    snake = self.snakes[snake_id]
                     head = snake.my_body[0]
                     tail = snake.my_body[-1]
                     s_x = head["x"]

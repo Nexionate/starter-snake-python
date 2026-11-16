@@ -11,7 +11,8 @@ TO DECIDE LATER: Early quit logic if snake dies. Might not work
 """
 def generate_new_state(state: State, moves: tuple[Move, ...]) -> State:
     new_state = copy.deepcopy(state)
-    for snake_id, move in enumerate(moves):
-        new_state.perform_move(snake_id, move)
+    # Pair moves with snakes (not list positions), since ids stop matching indices once snakes die
+    for snake, move in zip(list(new_state.snakes), moves):
+        new_state.perform_move(snake.id, move)
 
     return new_state
