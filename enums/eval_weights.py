@@ -1,0 +1,14 @@
+import math
+
+# These are actually constants, not enums
+class Weights:
+    USER_DEAD = -50000
+    USER_WIN = 50000
+    FREE_SPACE = 2500
+    BIG_SNAKE_CLOSENESS_PENALTY = -50 
+    MISSING_ONE_HP = -50
+    PUNISHMENT_PER_STEP_FROM_FOOD = -50
+    BIG_ALPHA_SNAKE_BONUS = 500
+    DEAD_OPPONENT_BONUS = 10000
+    BIG_SNAKE_DISTANCE_GROWTH = 1.5
+    FOOD_DISTANCE_GROWTH = 1.5
