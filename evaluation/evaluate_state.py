@@ -47,7 +47,9 @@ def evaluate_state(state: State):
     max_dist = (state.board.width - 1) + (state.board.height - 1)
     food_dist = min(food_dist, max_dist)  # cap it, see below
 
-    expected_score += Weights.PUNISHMENT_PER_STEP_FROM_FOOD * (Weights.FOOD_DISTANCE_GROWTH ** food_dist - 1)
+    # Floor the penalty so being far from food never scores worse than dying
+    food_penalty = Weights.PUNISHMENT_PER_STEP_FROM_FOOD * (Weights.FOOD_DISTANCE_GROWTH ** food_dist - 1)
+    expected_score += max(food_penalty, Weights.FOOD_PENALTY_FLOOR)
 
     # Evaluate relative size
     expected_score += big_snake_bonus(state) * Weights.BIG_ALPHA_SNAKE_BONUS

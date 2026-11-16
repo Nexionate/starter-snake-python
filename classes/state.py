@@ -53,7 +53,8 @@ class State:
     # When a snake dies, update snake list, update board.grid, update did_user_die, update dead_count
     # When removing two snakes from the list, remove US FIRST, then the OTHER AFTERWARDS
     def handle_collision(self, snake1, snake2):
-        if snake1.health > snake2.health:
+        # Head-to-head is decided by length, not health
+        if len(snake1.my_body) > len(snake2.my_body):
             self.snakes.remove(snake2)
             self.board.update_dead_snake(snake2)
             self.death_count += 1
@@ -61,7 +62,7 @@ class State:
                 self.did_user_die = True
             return True
         
-        elif snake1.health == snake2.health:
+        elif len(snake1.my_body) == len(snake2.my_body):
             self.snakes.remove(snake1)
             self.snakes.remove(snake2)
             self.board.update_dead_snake(snake1)
@@ -71,7 +72,7 @@ class State:
                 self.did_user_die = True
             return False
         
-        elif snake1.health < snake2.health:
+        elif len(snake1.my_body) < len(snake2.my_body):
             self.snakes.remove(snake1)
             self.board.update_dead_snake(snake1)
             self.death_count += 1
@@ -91,10 +92,11 @@ class State:
             s_y += 1 
         elif move == Move.DOWN:
             s_y -= 1
-        my_cells = generate_neighbouring_cells({"x": s_x, "y": s_y}, self.board.width, self.board.height)
-        opp_snakes = []
+        target = {"x": s_x, "y": s_y}
+        # Only snakes that already moved this turn (lower id) can be head-to-head with us,
+        # and only if they landed on the exact cell we're moving into
         for opp_snake in list(self.snakes):
-            if opp_snake.my_head in my_cells and opp_snake.id < snake.id:
+            if opp_snake.my_head == target and opp_snake.id < snake.id:
                 did_we_survive = self.handle_collision(snake, opp_snake)
                 if did_we_survive == False:
                     return False
@@ -144,9 +146,10 @@ class State:
         if snake is None:
             return
         if not self.check_out_of_bounds(snake, move):
-            if self.check_body_collision(snake, move):
-                did_we_survive = self.move_then_check_for_head(snake, move)
-                if did_we_survive:
+            # Head-to-head runs before the body check, otherwise landing on an
+            # already-moved snake's new head is wrongly treated as a body collision
+            if self.move_then_check_for_head(snake, move):
+                if self.check_body_collision(snake, move):
                     head = snake.my_body[0]
                     tail = snake.my_body[-1]
                     s_x = head["x"]
